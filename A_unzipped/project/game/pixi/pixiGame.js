@@ -3,12 +3,14 @@ import { InputManager } from '../core/InputManager.js';
 import { Player } from './runtime/player.js';
 import { Animal } from './runtime/animal.js';
 import { ResourceNode } from './runtime/resourceNode.js';
+import { ParticleSystem } from './runtime/particles.js';
 
 export class PixiGame {
     constructor(notificationManager) {
         this.notificationManager = notificationManager;
         this.app = null;
         this.world = null;
+        this.fx = null;
         this.hud = null;
         this.camera = null;
         
@@ -17,10 +19,16 @@ export class PixiGame {
         
         this.animals = [];
         this.resources = [];
+        this.particles = null;
         
         this.isRunning = false;
         this.worldWidth = 2400;
         this.worldHeight = 2400;
+        
+        this._camX = 0;
+        this._camY = 0;
+        this._shakeT = 0;
+        this._shakeS = 0;
     }
     
     async init() {
@@ -31,12 +39,15 @@ export class PixiGame {
             view: canvas,
             resizeTo: window,
             background: 0x0b1220,
-            antialias: true
+            antialias: true,
+            preference: 'canvas'
         });
         
         this.world = new Container();
+        this.fx = new Container();
         this.camera = new Container();
         this.camera.addChild(this.world);
+        this.camera.addChild(this.fx);
         this.app.stage.addChild(this.camera);
         
         this.setupBackground();
@@ -49,13 +60,34 @@ export class PixiGame {
     setupBackground() {
         const bg = new Graphics()
             .rect(0, 0, this.worldWidth, this.worldHeight)
-            .fill({ color: 0x163b2a });
+            .fill({ color: 0x153b2b });
+        
+        const grid = new Graphics();
+        const step = 120;
+        for (let x = 0; x <= this.worldWidth; x += step) {
+            grid.moveTo(x, 0).lineTo(x, this.worldHeight);
+        }
+        for (let y = 0; y <= this.worldHeight; y += step) {
+            grid.moveTo(0, y).lineTo(this.worldWidth, y);
+        }
+        grid.stroke({ width: 2, color: 0x0b1220, alpha: 0.06 });
+        
+        const deco = new Graphics();
+        for (let i = 0; i < 260; i++) {
+            const x = Math.random() * this.worldWidth;
+            const y = Math.random() * this.worldHeight;
+            const r = 1 + Math.random() * 4;
+            const a = 0.03 + Math.random() * 0.04;
+            deco.circle(x, y, r).fill({ color: 0x0b1220, alpha: a });
+        }
         
         const border = new Graphics()
             .rect(0, 0, this.worldWidth, this.worldHeight)
-            .stroke({ width: 6, color: 0x0b1220, alpha: 0.7 });
+            .stroke({ width: 10, color: 0x0b1220, alpha: 0.35 });
         
         this.world.addChild(bg);
+        this.world.addChild(grid);
+        this.world.addChild(deco);
         this.world.addChild(border);
     }
     
@@ -104,6 +136,9 @@ export class PixiGame {
             this.resources.push(r);
         }
         
+        this.particles = new ParticleSystem();
+        this.particles.addTo(this.fx);
+        
         this.hud = new Text({
             text: '',
             style: {
@@ -138,12 +173,18 @@ export class PixiGame {
             a.update(dt, this.player, this.worldWidth, this.worldHeight);
         }
         
-        this.updateCamera();
+        for (const r of this.resources) {
+            r.update(dt);
+        }
+        
+        this.particles.update(dt);
+        
+        this.updateCamera(dt);
         this.updateHud();
         this.updateDomUI();
     }
     
-    updateCamera() {
+    updateCamera(dt) {
         const w = this.app.renderer.width;
         const h = this.app.renderer.height;
         const targetX = -this.player.x + w / 2;
@@ -152,8 +193,28 @@ export class PixiGame {
         const minX = -this.worldWidth + w;
         const minY = -this.worldHeight + h;
         
-        this.camera.x = Math.min(0, Math.max(minX, targetX));
-        this.camera.y = Math.min(0, Math.max(minY, targetY));
+        const clampedX = Math.min(0, Math.max(minX, targetX));
+        const clampedY = Math.min(0, Math.max(minY, targetY));
+        
+        this._camX += (clampedX - this._camX) * 0.12;
+        this._camY += (clampedY - this._camY) * 0.12;
+        
+        let sx = 0;
+        let sy = 0;
+        if (this._shakeT > 0) {
+            this._shakeT -= dt;
+            const k = Math.max(0, this._shakeT) / 0.18;
+            sx = (Math.random() * 2 - 1) * this._shakeS * k;
+            sy = (Math.random() * 2 - 1) * this._shakeS * k;
+        }
+        
+        this.camera.x = this._camX + sx;
+        this.camera.y = this._camY + sy;
+    }
+    
+    shake(strength = 10, duration = 0.18) {
+        this._shakeS = Math.max(this._shakeS, strength);
+        this._shakeT = Math.max(this._shakeT, duration);
     }
     
     updateHud() {
@@ -237,14 +298,26 @@ export class PixiGame {
             this.notificationManager.show('Evcilleştirilmiş hedefe saldıramazsın', 'info');
             return;
         }
+        this.player.flash();
+        this.player.punch(-this.player.dir.x, -this.player.dir.y);
+        
         const killed = target.takeDamage(this.player.attackDamage);
         this.player.gainXp(6);
         this.notificationManager.show('Saldırı!', 'combat', 1200);
+        
+        const dx = target.x - this.player.x;
+        const dy = target.y - this.player.y;
+        const d = Math.hypot(dx, dy) || 1;
+        target.punch(dx / d, dy / d);
+        this.particles.textBurst(target.x, target.y, { color: 0xfff1a6 });
+        this.shake(10, 0.14);
         
         if (killed) {
             this.player.inventory.meat += 1;
             this.player.gainXp(18);
             this.notificationManager.show('Av: +1 meat', 'success', 1500);
+            this.particles.burstCircle(target.x, target.y, { count: 18, color: 0xff4d4d, spread: 1, speed: 320, life: 0.55, size: 3 });
+            this.shake(14, 0.18);
             target.respawn(this.worldWidth, this.worldHeight);
         }
     }
@@ -268,6 +341,7 @@ export class PixiGame {
         const ok = Math.random() < chance;
         if (!ok) {
             this.notificationManager.show('Evcilleştirme başarısız', 'warning');
+            this.particles.burstCircle(target.x, target.y, { count: 10, color: 0xffb4b4, spread: 0.8, speed: 220, life: 0.45, size: 2 });
             this.player.gainXp(2);
             return;
         }
@@ -276,6 +350,7 @@ export class PixiGame {
         this.player.tamingSkill += 0.25;
         this.player.gainXp(24);
         this.notificationManager.show('Evcilleştirildi!', 'success');
+        this.particles.burstCircle(target.x, target.y, { count: 16, color: 0xa78bfa, spread: 1, speed: 280, life: 0.55, size: 3 });
     }
     
     gather() {
@@ -291,6 +366,7 @@ export class PixiGame {
         this.player.inventory[got.type] += got.amount;
         this.player.gainXp(4);
         this.notificationManager.show(`+${got.amount} ${got.type}`, 'gather', 1200);
+        const c = got.type === 'wood' ? 0x34d399 : got.type === 'stone' ? 0xe2e8f0 : 0xfb7185;
+        this.particles.burstCircle(target.x, target.y, { count: 12, color: c, spread: 0.9, speed: 260, life: 0.5, size: 3 });
     }
 }
-

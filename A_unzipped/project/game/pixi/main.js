@@ -27,7 +27,7 @@ class GameApp {
         } catch (err) {
             this.loadingManager.hide();
             this.menuManager.show();
-            console.error(err);
+            console.error('Init failed:', err, err?.message, err?.stack);
             this.notificationManager.show('Başlatma hatası: konsolu kontrol et', 'error', 5000);
         }
     }
@@ -52,6 +52,11 @@ class GameApp {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('error', (e) => {
+        console.error('Window error:', e?.message, e?.error?.stack || e?.error);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+        console.error('Unhandled rejection:', e?.reason, e?.reason?.message, e?.reason?.stack);
+    });
     new GameApp();
 });
-
