@@ -219,9 +219,7 @@ export class InputManager {
                 y *= 0.707;
             }
             
-            if (x !== 0 || y !== 0) {
-                this.emit('move', { x, y });
-            }
+            this.emit('move', { x, y });
         }, 16); // ~60fps
     }
 }

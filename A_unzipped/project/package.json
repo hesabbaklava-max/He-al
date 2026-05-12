@@ -3,6 +3,7 @@
     "start": "servor --reload"
   },
   "dependencies": {
+    "pixi.js": "^8.18.1",
     "servor": "^4.0.2"
   }
 }

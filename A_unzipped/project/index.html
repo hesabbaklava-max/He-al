@@ -8,6 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "pixi.js": "./node_modules/pixi.js/dist/pixi.mjs"
+            }
+        }
+    </script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -158,6 +165,6 @@
     <!-- Notifications -->
     <div id="notifications" class="notifications"></div>
 
-    <script type="module" src="game/main.js"></script>
+    <script type="module" src="game/pixi/main.js"></script>
 </body>
 </html>
