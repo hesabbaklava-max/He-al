@@ -12,19 +12,22 @@ class GameApp {
     }
     
     async init() {
-        // Show loading screen
-        await this.loadingManager.show();
-        
-        // Initialize game
-        this.game = new Game();
-        await this.game.init();
-        
-        // Hide loading screen and show menu
-        this.loadingManager.hide();
-        this.menuManager.show();
-        
-        // Setup menu events
-        this.setupMenuEvents();
+        try {
+            await this.loadingManager.show();
+            
+            this.game = new Game();
+            window.game = this.game;
+            await this.game.init();
+            
+            this.loadingManager.hide();
+            this.menuManager.show();
+            
+            this.setupMenuEvents();
+        } catch (err) {
+            this.loadingManager.hide();
+            this.menuManager.show();
+            console.error(err);
+        }
     }
     
     setupMenuEvents() {
