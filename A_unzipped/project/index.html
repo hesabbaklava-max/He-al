@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Wild Tamer - Survival Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="game-logo">
+                <h1>🦁 WILD TAMER</h1>
+                <p>Survival Adventure</p>
+            </div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Loading amazing world...</p>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" class="main-menu hidden">
+        <div class="menu-background"></div>
+        <div class="menu-content">
+            <div class="game-title">
+                <h1>🦁 WILD TAMER</h1>
+                <p>Tame, Build, Survive</p>
+            </div>
+            <div class="menu-buttons">
+                <button id="playBtn" class="menu-btn primary">🎮 PLAY</button>
+                <button id="settingsBtn" class="menu-btn">⚙️ SETTINGS</button>
+                <button id="helpBtn" class="menu-btn">❓ HELP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" class="hidden"></canvas>
+
+    <!-- Game UI -->
+    <div id="gameUI" class="game-ui hidden">
+        <!-- Health and Stats -->
+        <div class="stats-panel">
+            <div class="stat-bar">
+                <span class="stat-icon">❤️</span>
+                <div class="bar health-bar">
+                    <div class="bar-fill" id="healthBar"></div>
+                </div>
+                <span id="healthText">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-icon">🍖</span>
+                <div class="bar hunger-bar">
+                    <div class="bar-fill" id="hungerBar"></div>
+                </div>
+                <span id="hungerText">100/100</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-icon">💧</span>
+                <div class="bar thirst-bar">
+                    <div class="bar-fill" id="thirstBar"></div>
+                </div>
+                <span id="thirstText">100/100</span>
+            </div>
+        </div>
+
+        <!-- Resources -->
+        <div class="resources-panel">
+            <div class="resource">
+                <span class="resource-icon">🪵</span>
+                <span id="woodCount">0</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">🪨</span>
+                <span id="stoneCount">0</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">🥩</span>
+                <span id="meatCount">0</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">🍓</span>
+                <span id="berryCount">0</span>
+            </div>
+        </div>
+
+        <!-- Inventory -->
+        <div class="inventory-panel">
+            <button id="inventoryBtn" class="ui-btn">🎒</button>
+            <button id="craftingBtn" class="ui-btn">🔨</button>
+            <button id="buildingBtn" class="ui-btn">🏠</button>
+        </div>
+
+        <!-- Joysticks -->
+        <div class="joystick-container left">
+            <div id="moveJoystick" class="joystick">
+                <div class="joystick-knob"></div>
+            </div>
+            <div class="joystick-label">MOVE</div>
+        </div>
+
+        <div class="joystick-container right">
+            <div id="actionJoystick" class="joystick">
+                <div class="joystick-knob"></div>
+            </div>
+            <div class="joystick-label">ACTION</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="attackBtn" class="action-btn attack">⚔️</button>
+            <button id="tameBtn" class="action-btn tame">🤝</button>
+            <button id="gatherBtn" class="action-btn gather">⛏️</button>
+        </div>
+
+        <!-- Minimap -->
+        <div class="minimap">
+            <canvas id="minimapCanvas" width="120" height="120"></canvas>
+        </div>
+
+        <!-- Tamed Animals Panel -->
+        <div class="tamed-panel">
+            <h3>🐾 Tamed Animals</h3>
+            <div id="tamedList" class="tamed-list"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="inventoryModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎒 Inventory</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="inventory-grid" id="inventoryGrid"></div>
+        </div>
+    </div>
+
+    <div id="craftingModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔨 Crafting</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="crafting-content">
+                <div class="recipes-list" id="recipesList"></div>
+                <div class="crafting-preview" id="craftingPreview"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notifications" class="notifications"></div>
+
+    <script type="module" src="game/main.js"></script>
+</body>
+</html>
